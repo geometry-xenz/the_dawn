@@ -8,10 +8,12 @@ This log tracks daily work for **Krishna** and **Saksham** with a unique motivat
 > "Discipline is the bridge between goals and accomplishment."
 
 ### Krishna
--- Time started:
-_ Time ended:
+-- Time started: 20:00
+_ Time ended: 22:00
 - Topic name:
-- Topic completed:
+  - Setting up a Remote Access Tool for my HomeLab `Twingate`
+  - Learning a little about `Trafik` reverse proxy
+- Topic completed: All topics are completed
 
 ### Saksham
 -- Time started:
