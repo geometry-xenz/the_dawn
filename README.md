@@ -27,10 +27,12 @@ _ Time ended:
 > "You do not rise to the level of your goals, you fall to the level of your systems."
 
 ### Krishna
--- Time started:
-_ Time ended:
+-- Time started: 20:00
+_ Time ended:23:00
 - Topic name:
-- Topic completed:
+  - Created LAN cable
+  - Configured ONT for bridge mode
+- Topic completed: Done all
 
 ### Saksham
 -- Time started:
