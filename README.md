@@ -16,10 +16,10 @@ _ Time ended: 22:00
 - Topic completed: All topics are completed
 
 ### Saksham
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed time:
+-- Time started:1800
+_ Time ended:1900
+- Topic name:setted up github 
+- Topic completed : setttup of git
 
 ---
 
@@ -35,11 +35,10 @@ _ Time ended:23:00
 - Topic completed: Done all
 
 ### Saksham
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed time:
-
+-- Time started: 1800
+_ Time ended:1900
+- Topic name: sertup metasploitable2 and exploit it 
+- Topic completed :  setted up lab 
 ---
 
 ## 📅 February 06, 2026
@@ -52,7 +51,7 @@ _ Time ended:
 - Topic completed:
 
 ### Saksham
--- Time started:
+-- Time started:2000
 _ Time ended:
 - Topic name:
 - Topic completed time:
