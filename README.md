@@ -62,10 +62,12 @@ _ Time ended:2155
 > "Motivation gets you started. Habit keeps you going."
 
 ### Krishna
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed:
+-- Time started: 18:00
+_ Time ended: 19:00
+- Topic name: Learned about the structure of Linux Repositories
+  - Tried Hostinger Horizon
+  - Tried Hostinger Website Builder
+- Topic completed: done
 
 ### Saksham
 -- Time started:2000
