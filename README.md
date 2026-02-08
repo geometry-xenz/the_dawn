@@ -69,9 +69,9 @@ _ Time ended:
 
 ### Saksham
 -- Time started:2000
-_ Time ended:
+_ Time ended: 2151
 - Topic name:setting ai offline with computer access
-- Topic completed time:
+- Topic completed : yes 
 
 ---
 
