@@ -81,10 +81,10 @@ _ Time ended: 2151
 > "Focus on being productive instead of busy."
 
 ### Krishna
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed:
+-- Time started: undefined
+_ Time ended: undefined
+- Topic name: Learning about Package Management in Linux
+- Topic completed: Done
 
 ### Saksham
 -- Time started:
@@ -101,7 +101,10 @@ _ Time ended:
 -- Time started:
 _ Time ended:
 - Topic name:
-- Topic completed:
+  - Shifted Website from old laptop to Hostinger
+  - Learned about the structure of Linux repositories ( knew most of it already )
+  - Watched Some stuff related to Solar Panels
+- Topic completed: done
 
 ### Saksham
 -- Time started:
