@@ -136,10 +136,12 @@ _ Time ended:
 > "Success is the sum of small efforts repeated day in and day out."
 
 ### Krishna
--- Time started:
-_ Time ended:
+-- Time started: 07:00
+_ Time ended: 09:30
 - Topic name:
-- Topic completed:
+  - Learned about GitHub webhooks
+  - .htaccess custom error page redirection in Apache
+- Topic completed: done
 
 ### Saksham
 -- Time started:
