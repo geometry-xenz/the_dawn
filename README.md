@@ -87,10 +87,10 @@ _ Time ended: undefined
 - Topic completed: Done
 
 ### Saksham
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed time:
+-- Time started:2000
+_ Time ended:2219
+- Topic name:learning c
+- Topic completed : incomplete
 
 ---
 
@@ -107,11 +107,11 @@ _ Time ended:
 - Topic completed: done
 
 ### Saksham
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed time:
-
+-- Time started:2000
+_ Time ended:2151
+- Topic name:completed c basics , C intermidiate 
+- Topic completed :
+incomplete
 ---
 
 ## 📅 February 10, 2026
@@ -125,10 +125,10 @@ _ Time ended: 08:50
 - Topic completed: Under development
 
 ### Saksham
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed time:
+-- Time started:2200
+_ Time ended:2341
+- Topic name:c intermidiate level almost complete
+- Topic completed : aborted due to health issue
 
 ---
 
@@ -144,10 +144,10 @@ _ Time ended: 09:30
 - Topic completed: done
 
 ### Saksham
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed time:
+-- Time started:2000
+_ Time ended:2153
+- Topic name:aborted due to mental health issues
+- Topic completed time:aborted due to mental health issues
 
 ---
 
