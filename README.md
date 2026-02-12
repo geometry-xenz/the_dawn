@@ -155,10 +155,11 @@ _ Time ended:2153
 > "Mental toughness is doing the right thing even when you don't feel like it."
 
 ### Krishna
--- Time started:
-_ Time ended:
+-- Time started: 07:00
+_ Time ended: 08:20
 - Topic name:
-- Topic completed:
+  - Learned about git rebase and interactive rebase
+- Topic completed: done
 
 ### Saksham
 -- Time started:
