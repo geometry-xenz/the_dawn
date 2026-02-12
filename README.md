@@ -163,9 +163,9 @@ _ Time ended: 08:20
 
 ### Saksham
 -- Time started:1244
-_ Time ended:
+_ Time ended: 1448
 - Topic name: C programming
-- Topic completed time:
+- Topic completed: C to hardware connection 
 
 ---
 
