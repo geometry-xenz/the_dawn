@@ -207,10 +207,10 @@ _ Time ended:
 > "Your habits decide your future."
 
 ### Krishna
--- Time started:
-_ Time ended:
-- Topic name:
-- Topic completed:
+-- Time started: 9:00
+_ Time ended: 12:00
+- Topic name: learned about swup.js and how it alters the user click event for navigation
+- Topic completed: done
 
 ### Saksham
 -- Time started:
