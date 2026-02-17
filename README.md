@@ -224,9 +224,11 @@ _ Time ended:
 > "Progress compounds silently."
 
 ### Krishna
--- Time started:
-_ Time ended:
+-- Time started: 20:00
+_ Time ended:22:00
 - Topic name:
+  - Completed yuva for bharat course
+  - Studied for CASA exam
 - Topic completed:
 
 ### Saksham
