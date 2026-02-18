@@ -260,10 +260,12 @@ _ Time ended:
 > "Do the work even when no one is watching."
 
 ### Krishna
--- Time started:
-_ Time ended:
+-- Time started: 21:00
+_ Time ended: 22:00
 - Topic name:
-- Topic completed:
+  - Did some powershell scripting
+  - learned that using diode we can give half power to a heating rod
+- Topic completed: done
 
 ### Saksham
 -- Time started:
