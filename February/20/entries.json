@@ -1,9 +1,12 @@
 [
-    {
-        "User":  "krishna",
-        "Learning":  [
-                         "Something usefull",
-                         "Can add multiple entries as well "
-                     ]
-    }
+  {
+    "User": "krishna",
+    "Learning": [
+      "Something usefull",
+      "Can add multiple entries as well ",
+      "Nothing good",
+      "Not much ",
+      "I am just testing this shit out"
+    ]
+  }
 ]
