@@ -279,10 +279,11 @@ _ Time ended:
 > "Self-control is strength."
 
 ### Krishna
--- Time started:
-_ Time ended:
+-- Time started: 23:28
+_ Time ended: 02:36
 - Topic name:
-- Topic completed:
+  - Powershell scripting
+- Topic completed: done
 
 ### Saksham
 -- Time started:
