@@ -8,7 +8,7 @@
 #   - Commits everything back to the repo automatically
 # ==============================================================================
 
-name: "📓 Log Learning Entry"
+name: "Log Learning Entry"
 
 on:
   workflow_dispatch:
@@ -66,11 +66,11 @@ jobs:
     steps:
 
       # ── 1. Checkout ────────────────────────────────────────────────────────
-      - name: "🔀 Checkout repository"
+      - name: "Checkout repository"
         uses: actions/checkout@v4
 
       # ── 2. Resolve date ────────────────────────────────────────────────────
-      - name: "📅 Resolve log date"
+      - name: "Resolve log date"
         id: date
         run: |
           if [ -n "${{ inputs.log_date }}" ]; then
@@ -91,7 +91,7 @@ jobs:
           echo "::notice title=Log Date::$DAY $MONTH $YEAR"
 
       # ── 3. Validate user ───────────────────────────────────────────────────
-      - name: "👤 Validate user exists in userdb.json"
+      - name: "Validate user exists in userdb.json"
         id: validate_user
         run: |
           NAME_LOWER=$(echo "${{ inputs.user }}" | tr '[:upper:]' '[:lower:]')
@@ -122,7 +122,7 @@ jobs:
           echo "::notice title=User::Logged in as $FOUND"
 
       # ── 4. Build entry list ────────────────────────────────────────────────
-      - name: "📝 Collect entries"
+      - name: "Collect entries"
         id: entries
         run: |
           # Collect all non-empty entries into a JSON array string
@@ -159,7 +159,7 @@ jobs:
           ENTRY_5: "${{ inputs.entry_5 }}"
 
       # ── 5. Update entries.json ─────────────────────────────────────────────
-      - name: "💾 Update entries.json"
+      - name: "Update entries.json"
         id: update_json
         run: |
           python3 - <<'EOF'
@@ -195,7 +195,7 @@ jobs:
           DISPLAY_NAME: "${{ steps.validate_user.outputs.display_name }}"
 
       # ── 6. Regenerate Markdown ─────────────────────────────────────────────
-      - name: "📄 Regenerate Markdown summary"
+      - name: "Regenerate Markdown summary"
         run: |
           python3 - <<'EOF'
           import json, os, pathlib
@@ -215,18 +215,14 @@ jobs:
 
           bullet_list = "\n- ".join(record["Learning"])
 
-          md = f"""# {name.upper()} Learning
+          md  = "# " + name.upper() + " Learning\n"
+          md += "\n### " + day + ", " + month + " " + year + "\n"
+          md += "\n## What did I learn today?\n"
+          md += "\n- " + bullet_list + "\n"
 
-### {day}, {month} {year}
-
-## What did I learn today?
-
-- {bullet_list}
-"""
-
-          md_path = pathlib.Path(month) / day / f"{name.lower()}_learning.md"
+          md_path = pathlib.Path(month) / day / (name.lower() + "_learning.md")
           md_path.write_text(md)
-          print(f"✔  Markdown written to {md_path}")
+          print("Markdown written to " + str(md_path))
           EOF
         env:
           DAY:          "${{ steps.date.outputs.day }}"
@@ -235,7 +231,7 @@ jobs:
           DISPLAY_NAME: "${{ steps.validate_user.outputs.display_name }}"
 
       # ── 7. Commit & push ───────────────────────────────────────────────────
-      - name: "🚀 Commit and push changes"
+      - name: "Commit and push changes"
         run: |
           git config user.name  "DAWN Logger"
           git config user.email "dawn-logger@github-actions"

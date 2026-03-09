@@ -1,25 +1,25 @@
 # ==============================================================================
 # Workflow: Retrieve Learning Entry
-# Trigger:  Manual  (Actions → Retrieve Learning Entry → Run workflow)
+# Trigger:  Manual  (Actions -> Retrieve Learning Entry -> Run workflow)
 # What it does:
 #   - Finds the Markdown log for a given user + date
-#   - Prints it in the Actions run log  (with ANSI colours where supported)
-#   - Also uploads it as a downloadable workflow artifact
+#   - Prints it directly in the Actions run log with ANSI colours
+#   - No artifacts, no downloads — just open the run and read
 # ==============================================================================
 
-name: "🔍 Retrieve Learning Entry"
+name: "Retrieve Learning Entry"
 
 on:
   workflow_dispatch:
     inputs:
 
       user:
-        description: "👤 Your name"
+        description: "Your name"
         required: true
         type: string
 
       log_date:
-        description: "📅 Date to retrieve  (leave blank = today)  format: YYYY-MM-DD"
+        description: "Date to retrieve (leave blank = today)  format: YYYY-MM-DD"
         required: false
         type: string
         default: ""
@@ -35,11 +35,11 @@ jobs:
     steps:
 
       # ── 1. Checkout ────────────────────────────────────────────────────────
-      - name: "🔀 Checkout repository"
+      - name: "Checkout repository"
         uses: actions/checkout@v4
 
       # ── 2. Resolve date ────────────────────────────────────────────────────
-      - name: "📅 Resolve target date"
+      - name: "Resolve target date"
         id: date
         run: |
           if [ -n "${{ inputs.log_date }}" ]; then
@@ -56,42 +56,42 @@ jobs:
           echo "month=$MONTH" >> "$GITHUB_OUTPUT"
           echo "year=$YEAR"   >> "$GITHUB_OUTPUT"
 
-      # ── 3. Find & display the entry ────────────────────────────────────────
-      - name: "📖 Display learning entry"
-        id: display
+      # ── 3. Find & display the entry in the run log ─────────────────────────
+      - name: "Display learning entry"
         run: |
           python3 - <<'EOF'
           import os, pathlib, sys
 
-          # ── ANSI helpers (GitHub Actions log supports basic ANSI) ───────────
-          RESET   = "\033[0m"
-          BOLD    = "\033[1m"
-          CYAN    = "\033[36m"
-          YELLOW  = "\033[33m"
-          GREEN   = "\033[32m"
-          RED     = "\033[31m"
-          WHITE   = "\033[37m"
-          DIM     = "\033[2m"
+          # ANSI codes — GitHub Actions log renders these
+          RESET  = "\033[0m"
+          BOLD   = "\033[1m"
+          DIM    = "\033[2m"
+          CYAN   = "\033[36m"
+          YELLOW = "\033[33m"
+          GREEN  = "\033[32m"
+          RED    = "\033[31m"
+          WHITE  = "\033[37m"
 
           def banner():
-            lines = [
-              "  ██████╗  █████╗ ██╗    ██╗███╗   ██╗",
-              "  ██╔══██╗██╔══██╗██║    ██║████╗  ██║",
-              "  ██║  ██║███████║██║ █╗ ██║██╔██╗ ██║",
-              "  ██║  ██║██╔══██║██║███╗██║██║╚██╗██║",
-              "  ██████╔╝██║  ██║╚███╔███╔╝██║ ╚████║",
-              "  ╚═════╝ ╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═══╝",
-              "       Daily Learning Logger — Retrieve",
-            ]
-            print(f"\n{BOLD}{CYAN}{'─'*48}{RESET}")
-            for l in lines:
-              print(f"{BOLD}{CYAN}{l}{RESET}")
-            print(f"{BOLD}{CYAN}{'─'*48}{RESET}\n")
+              lines = [
+                  "  ██████╗  █████╗ ██╗    ██╗███╗   ██╗",
+                  "  ██╔══██╗██╔══██╗██║    ██║████╗  ██║",
+                  "  ██║  ██║███████║██║ █╗ ██║██╔██╗ ██║",
+                  "  ██║  ██║██╔══██║██║███╗██║██║╚██╗██║",
+                  "  ██████╔╝██║  ██║╚███╔███╔╝██║ ╚████║",
+                  "  ╚═════╝ ╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═══╝",
+                  "       Daily Learning Logger",
+              ]
+              print(f"\n{BOLD}{CYAN}{'─'*50}{RESET}")
+              for l in lines:
+                  print(f"{BOLD}{CYAN}{l}{RESET}")
+              print(f"{BOLD}{CYAN}{'─'*50}{RESET}\n")
 
           def section(title):
-            print(f"\n{BOLD}{CYAN}┌{'─'*40}┐{RESET}")
-            print(f"{BOLD}{CYAN}│  {YELLOW}{title:<38}{CYAN}│{RESET}")
-            print(f"{BOLD}{CYAN}└{'─'*40}┘{RESET}\n")
+              pad = max(0, 40 - len(title))
+              print(f"\n{BOLD}{CYAN}┌{'─'*42}┐{RESET}")
+              print(f"{BOLD}{CYAN}│  {YELLOW}{title}{' ' * pad}{CYAN}  │{RESET}")
+              print(f"{BOLD}{CYAN}└{'─'*42}┘{RESET}\n")
 
           banner()
 
@@ -102,50 +102,35 @@ jobs:
 
           md_path = pathlib.Path(month) / day / f"{name.lower()}_learning.md"
 
-          section(f"{name.upper()}  ·  {day} {month} {year}")
+          section(f"{name.upper()}  -  {day} {month} {year}")
 
           if not md_path.exists():
-            print(f"  {RED}✘  No entry found for {name.upper()} on {day} {month} {year}.{RESET}")
-            print(f"  {DIM}   Expected path: {md_path}{RESET}\n")
-            # Exit 0 so the job stays green — just "not found", not an error
-            sys.exit(0)
+              print(f"  {RED}No entry found for {name.upper()} on {day} {month} {year}.{RESET}")
+              print(f"  {DIM}Expected file: {md_path}{RESET}\n")
+              sys.exit(0)
 
-          # ── Pretty-print the Markdown ───────────────────────────────────────
-          print(f"  {GREEN}✔  Found: {md_path}{RESET}\n")
-          print(f"{BOLD}{CYAN}{'─'*48}{RESET}")
+          # Pretty-print the Markdown with colours
+          print(f"  {GREEN}Found: {md_path}{RESET}\n")
+          print(f"{BOLD}{CYAN}{'─'*50}{RESET}")
 
           for line in md_path.read_text().splitlines():
-            if line.startswith("# "):
-              print(f"\n  {BOLD}{YELLOW}{line}{RESET}")
-            elif line.startswith("## "):
-              print(f"\n  {BOLD}{CYAN}{line}{RESET}")
-            elif line.startswith("### "):
-              print(f"  {DIM}{WHITE}{line}{RESET}")
-            elif line.startswith("- "):
-              print(f"  {GREEN}▸{WHITE} {line[2:]}{RESET}")
-            elif line.strip():
-              print(f"  {WHITE}{line}{RESET}")
-            else:
-              print()
+              if line.startswith("# "):
+                  print(f"\n  {BOLD}{YELLOW}{line}{RESET}")
+              elif line.startswith("## "):
+                  print(f"\n  {BOLD}{CYAN}{line}{RESET}")
+              elif line.startswith("### "):
+                  print(f"  {DIM}{WHITE}{line}{RESET}")
+              elif line.startswith("- "):
+                  print(f"  {GREEN}>{WHITE} {line[2:]}{RESET}")
+              elif line.strip():
+                  print(f"  {WHITE}{line}{RESET}")
+              else:
+                  print()
 
-          print(f"\n{BOLD}{CYAN}{'─'*48}{RESET}\n")
-
-          # Write path to env so the upload step knows where the file is
-          with open(os.environ["GITHUB_ENV"], "a") as f:
-            f.write(f"MD_PATH={md_path}\n")
-            f.write(f"ENTRY_FOUND=true\n")
+          print(f"\n{BOLD}{CYAN}{'─'*50}{RESET}\n")
           EOF
         env:
           USER_NAME: "${{ inputs.user }}"
           DAY:       "${{ steps.date.outputs.day }}"
           MONTH:     "${{ steps.date.outputs.month }}"
           YEAR:      "${{ steps.date.outputs.year }}"
-
-      # ── 4. Upload Markdown as downloadable artifact ────────────────────────
-      - name: "📎 Upload entry as artifact"
-        if: env.ENTRY_FOUND == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: "${{ inputs.user }}-${{ steps.date.outputs.day }}-${{ steps.date.outputs.month }}-${{ steps.date.outputs.year }}"
-          path: "${{ env.MD_PATH }}"
-          retention-days: 30
