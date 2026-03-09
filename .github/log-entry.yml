@@ -1,0 +1,253 @@
+# ==============================================================================
+# Workflow: Log Learning Entry
+# Trigger:  Manual  (Actions → Log Learning Entry → Run workflow)
+# What it does:
+#   - Accepts your name + up to 5 learning entries as inputs
+#   - Appends them to  <Month>/<DD>/entries.json
+#   - Regenerates     <Month>/<DD>/<name>_learning.md
+#   - Commits everything back to the repo automatically
+# ==============================================================================
+
+name: "📓 Log Learning Entry"
+
+on:
+  workflow_dispatch:
+    inputs:
+
+      user:
+        description: "👤 Your name  (must already exist in userdb.json)"
+        required: true
+        type: string
+
+      entry_1:
+        description: "✏️  Learning #1  (required)"
+        required: true
+        type: string
+
+      entry_2:
+        description: "✏️  Learning #2  (optional)"
+        required: false
+        type: string
+        default: ""
+
+      entry_3:
+        description: "✏️  Learning #3  (optional)"
+        required: false
+        type: string
+        default: ""
+
+      entry_4:
+        description: "✏️  Learning #4  (optional)"
+        required: false
+        type: string
+        default: ""
+
+      entry_5:
+        description: "✏️  Learning #5  (optional)"
+        required: false
+        type: string
+        default: ""
+
+      log_date:
+        description: "📅 Date to log for  (leave blank = today)  format: YYYY-MM-DD"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  log:
+    name: "Save entry for ${{ inputs.user }}"
+    runs-on: ubuntu-latest
+
+    # Give the job write access so it can commit files back
+    permissions:
+      contents: write
+
+    steps:
+
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: "🔀 Checkout repository"
+        uses: actions/checkout@v4
+
+      # ── 2. Resolve date ────────────────────────────────────────────────────
+      - name: "📅 Resolve log date"
+        id: date
+        run: |
+          if [ -n "${{ inputs.log_date }}" ]; then
+            RAW="${{ inputs.log_date }}"
+          else
+            RAW=$(date -u '+%Y-%m-%d')
+          fi
+
+          DAY=$(date  -d "$RAW" '+%d')
+          MONTH=$(date -d "$RAW" '+%B')
+          YEAR=$(date  -d "$RAW" '+%Y')
+
+          echo "day=$DAY"     >> "$GITHUB_OUTPUT"
+          echo "month=$MONTH" >> "$GITHUB_OUTPUT"
+          echo "year=$YEAR"   >> "$GITHUB_OUTPUT"
+          echo "raw=$RAW"     >> "$GITHUB_OUTPUT"
+
+          echo "::notice title=Log Date::$DAY $MONTH $YEAR"
+
+      # ── 3. Validate user ───────────────────────────────────────────────────
+      - name: "👤 Validate user exists in userdb.json"
+        id: validate_user
+        run: |
+          NAME_LOWER=$(echo "${{ inputs.user }}" | tr '[:upper:]' '[:lower:]')
+          echo "name_lower=$NAME_LOWER" >> "$GITHUB_OUTPUT"
+
+          # Create userdb.json if it doesn't exist yet
+          if [ ! -f userdb.json ]; then
+            echo "[]" > userdb.json
+            echo "::warning::userdb.json not found — created a new one."
+          fi
+
+          # Check if user is listed (case-insensitive)
+          FOUND=$(python3 -c "
+          import json, sys
+          db = json.load(open('userdb.json'))
+          name = '$NAME_LOWER'
+          matched = [u for u in db if u.lower() == name]
+          print(matched[0] if matched else '')
+          ")
+
+          if [ -z "$FOUND" ]; then
+            echo "::error::User '${{ inputs.user }}' was not found in userdb.json."
+            echo "::error::Add them first, or check the spelling."
+            exit 1
+          fi
+
+          echo "display_name=$FOUND" >> "$GITHUB_OUTPUT"
+          echo "::notice title=User::Logged in as $FOUND"
+
+      # ── 4. Build entry list ────────────────────────────────────────────────
+      - name: "📝 Collect entries"
+        id: entries
+        run: |
+          # Collect all non-empty entries into a JSON array string
+          python3 - <<'EOF'
+          import json, os
+
+          raw = [
+            os.environ.get("ENTRY_1", "").strip(),
+            os.environ.get("ENTRY_2", "").strip(),
+            os.environ.get("ENTRY_3", "").strip(),
+            os.environ.get("ENTRY_4", "").strip(),
+            os.environ.get("ENTRY_5", "").strip(),
+          ]
+
+          entries = [e for e in raw if e]
+
+          if not entries:
+            print("::error::No entries provided.")
+            raise SystemExit(1)
+
+          # Write to a temp file so later steps can read it
+          with open("/tmp/new_entries.json", "w") as f:
+            json.dump(entries, f)
+
+          print(f"Collected {len(entries)} entr{'y' if len(entries)==1 else 'ies'}.")
+          for i, e in enumerate(entries, 1):
+            print(f"  {i}. {e}")
+          EOF
+        env:
+          ENTRY_1: "${{ inputs.entry_1 }}"
+          ENTRY_2: "${{ inputs.entry_2 }}"
+          ENTRY_3: "${{ inputs.entry_3 }}"
+          ENTRY_4: "${{ inputs.entry_4 }}"
+          ENTRY_5: "${{ inputs.entry_5 }}"
+
+      # ── 5. Update entries.json ─────────────────────────────────────────────
+      - name: "💾 Update entries.json"
+        id: update_json
+        run: |
+          python3 - <<'EOF'
+          import json, os, pathlib
+
+          day   = os.environ["DAY"]
+          month = os.environ["MONTH"]
+          name  = os.environ["DISPLAY_NAME"]
+
+          folder = pathlib.Path(month) / day
+          folder.mkdir(parents=True, exist_ok=True)
+
+          db_path = folder / "entries.json"
+          edb = json.loads(db_path.read_text()) if db_path.exists() else []
+
+          new_entries = json.load(open("/tmp/new_entries.json"))
+
+          # Find or create the user record
+          record = next((r for r in edb if r["User"].lower() == name.lower()), None)
+          if record is None:
+            record = {"User": name.lower(), "Learning": []}
+            edb.append(record)
+
+          record["Learning"].extend(new_entries)
+
+          db_path.write_text(json.dumps(edb, indent=2))
+          print(f"✔  entries.json updated at {db_path}")
+          print(f"   Total entries for {name}: {len(record['Learning'])}")
+          EOF
+        env:
+          DAY:          "${{ steps.date.outputs.day }}"
+          MONTH:        "${{ steps.date.outputs.month }}"
+          DISPLAY_NAME: "${{ steps.validate_user.outputs.display_name }}"
+
+      # ── 6. Regenerate Markdown ─────────────────────────────────────────────
+      - name: "📄 Regenerate Markdown summary"
+        run: |
+          python3 - <<'EOF'
+          import json, os, pathlib
+
+          day   = os.environ["DAY"]
+          month = os.environ["MONTH"]
+          year  = os.environ["YEAR"]
+          name  = os.environ["DISPLAY_NAME"]
+
+          db_path = pathlib.Path(month) / day / "entries.json"
+          edb     = json.loads(db_path.read_text())
+
+          record = next((r for r in edb if r["User"].lower() == name.lower()), None)
+          if record is None:
+            print("No record found — nothing to write.")
+            raise SystemExit(0)
+
+          bullet_list = "\n- ".join(record["Learning"])
+
+          md = f"""# {name.upper()} Learning
+
+### {day}, {month} {year}
+
+## What did I learn today?
+
+- {bullet_list}
+"""
+
+          md_path = pathlib.Path(month) / day / f"{name.lower()}_learning.md"
+          md_path.write_text(md)
+          print(f"✔  Markdown written to {md_path}")
+          EOF
+        env:
+          DAY:          "${{ steps.date.outputs.day }}"
+          MONTH:        "${{ steps.date.outputs.month }}"
+          YEAR:         "${{ steps.date.outputs.year }}"
+          DISPLAY_NAME: "${{ steps.validate_user.outputs.display_name }}"
+
+      # ── 7. Commit & push ───────────────────────────────────────────────────
+      - name: "🚀 Commit and push changes"
+        run: |
+          git config user.name  "DAWN Logger"
+          git config user.email "dawn-logger@github-actions"
+
+          git add .
+
+          # Only commit if there is something new
+          if git diff --cached --quiet; then
+            echo "::notice::No file changes to commit."
+          else
+            ENTRY_COUNT=$(python3 -c "import json; print(len(json.load(open('/tmp/new_entries.json'))))")
+            git commit -m "📓 log: ${{ steps.validate_user.outputs.display_name }} — $ENTRY_COUNT entr$([ $ENTRY_COUNT -eq 1 ] && echo 'y' || echo 'ies') on ${{ steps.date.outputs.day }} ${{ steps.date.outputs.month }} ${{ steps.date.outputs.year }}"
+            git push
+            echo "::notice title=Done::Entry saved and committed successfully! 🎉"
+          fi
