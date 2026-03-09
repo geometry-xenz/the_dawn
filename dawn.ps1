@@ -5,185 +5,284 @@
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
-# 1. USER INPUT & DATE SETUP
+# ANSI COLOR HELPERS
+# ------------------------------------------------------------------------------
+$ESC = [char]27
+$RESET = "$ESC[0m"
+$BOLD = "$ESC[1m"
+$DIM = "$ESC[2m"
+
+# Foreground colors
+$FG_BLACK = "$ESC[30m"
+$FG_RED = "$ESC[31m"
+$FG_GREEN = "$ESC[32m"
+$FG_YELLOW = "$ESC[33m"
+$FG_BLUE = "$ESC[34m"
+$FG_MAGENTA = "$ESC[35m"
+$FG_CYAN = "$ESC[36m"
+$FG_WHITE = "$ESC[37m"
+
+# Background colors
+$BG_BLUE = "$ESC[44m"
+$BG_CYAN = "$ESC[46m"
+$BG_BLACK = "$ESC[40m"
+
+# Compound styles
+$HEADER = "$BOLD$FG_CYAN"
+$ACCENT = "$BOLD$FG_YELLOW"
+$SUCCESS = "$BOLD$FG_GREEN"
+$ERROR_CLR = "$BOLD$FG_RED"
+$INFO = "$FG_BLUE"
+$MUTED = "$DIM$FG_WHITE"
+$PROMPT_CLR = "$BOLD$FG_MAGENTA"
+
+# ------------------------------------------------------------------------------
+# HELPER FUNCTIONS
+# ------------------------------------------------------------------------------
+function Write-Banner {
+    Clear-Host
+    Write-Host ""
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE                                          $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE    ██████╗  █████╗ ██╗    ██╗███╗   ██╗  $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE    ██╔══██╗██╔══██╗██║    ██║████╗  ██║  $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE    ██║  ██║███████║██║ █╗ ██║██╔██╗ ██║  $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE    ██║  ██║██╔══██║██║███╗██║██║╚██╗██║  $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE    ██████╔╝██║  ██║╚███╔███╔╝██║ ╚████║  $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE    ╚═════╝ ╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═══╝  $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE         Daily Learning Logger              $RESET"
+    Write-Host "  $BOLD$BG_BLUE$FG_WHITE                                            $RESET"
+    Write-Host ""
+}
+
+function Write-SectionHeader([string]$Title) {
+    Write-Host ""
+    Write-Host "  $HEADER┌─────────────────────────────────────┐$RESET"
+    Write-Host "  $HEADER│  $ACCENT$Title$HEADER$((' ' * (36 - $Title.Length)))│$RESET"
+    Write-Host "  $HEADER└─────────────────────────────────────┘$RESET"
+    Write-Host ""
+}
+
+function Write-Success([string]$msg) {
+    Write-Host "  $SUCCESS✔  $msg$RESET"
+}
+
+function Write-Err([string]$msg) {
+    Write-Host "  $ERROR_CLR✘  $msg$RESET"
+}
+
+function Write-Info([string]$msg) {
+    Write-Host "  $INFO➜  $msg$RESET"
+}
+
+function Write-Divider {
+    Write-Host "  $MUTED$('─' * 42)$RESET"
+}
+
+# ------------------------------------------------------------------------------
+# 1. DATE SETUP & USER DATABASE
 # ------------------------------------------------------------------------------
 $userdb_path = "./userdb.json"
-$check_db = Test-Path $userdb_path
 
-# Grab the current date and format it for our folders and Markdown
 $day = Get-Date -Format 'dd'
 $month = Get-Date -Format 'MMMM'
 $year = Get-Date -Format 'yyyy'
 
-# Create a blank JSON array if the master database doesn't exist
-if (-not $check_db) {
+if (-not (Test-Path $userdb_path)) {
     New-Item -Path "./" -Name 'userdb.json' -Value "[]" | Out-Null
 }
 
-# Read the JSON string
-$db_data = Get-Content $userdb_path -Raw
+[array]$db = ConvertFrom-Json (Get-Content $userdb_path -Raw)
 
-# Convert to a PowerShell Array
-[array]$db = ConvertFrom-Json $db_data
-
+# ------------------------------------------------------------------------------
+# 2. USER SELECTION
+# ------------------------------------------------------------------------------
 $isValid = $false
-
 do {
-    Clear-Host
-
-    Write-Output "`n--- Select User ---"
+    Write-Banner
+    Write-SectionHeader "Select User"
 
     for ($i = 0; $i -lt $db.Count; $i++) {
-        Write-Output "$($i + 1)) $($db[$i])"
+        Write-Host "    $ACCENT$($i + 1))$RESET  $FG_WHITE$($db[$i])$RESET"
     }
 
-    [int]$user_no = Read-Host "`n`tWho are you "
+    Write-Host ""
+    [int]$user_no = Read-Host "  $PROMPT_CLR  Who are you?$RESET "
 
     if ((0 -lt $user_no) -and ($user_no -le $db.Count)) {
         $isValid = $true
         [string]$name = $db[$user_no - 1]
     }
-
-} until ($isValid -eq $true)
-
-Write-Output "`n>> Setting name = $name"
-
-$isValid = $false
-
-do {
-    Clear-Host
-
-    Write-Output "`nHello, $($name.ToUpper())`n`n--- What you want to do ? ---"
-    Write-Output "`n`t1) Log an Entry"
-    Write-Output "`n`t2) Retrive an Entry"
-
-    [int]$choice = Read-Host "`nChoose from option 1-2 "
-
-    if (-not (($choice -eq 1) -or ($choice -eq 2))) {
-        Write-Output "`nInvalid choice. Please type 1 or 2."
-        Start-Sleep -Seconds 2
-    }
     else {
-        $isValid = $true
+        Write-Err "Invalid selection. Try again."
+        Start-Sleep -Seconds 1
     }
+} until ($isValid)
 
-} until ($isValid -eq $true)
+Write-Info "Logged in as $ACCENT$($name.ToUpper())$RESET"
+Start-Sleep -Milliseconds 600
 
+# ------------------------------------------------------------------------------
+# 3. MAIN APPLICATION LOOP — keeps running until user chooses to Exit
+# ------------------------------------------------------------------------------
+$running = $true
 
-if ($choice -eq 1) {
+while ($running) {
 
+    # ── Menu ──────────────────────────────────────────────────────────────────
+    $isValid = $false
+    do {
+        Write-Banner
+        Write-Host "  $MUTED$(Get-Date -Format 'dddd, dd MMMM yyyy  •  HH:mm')$RESET"
+        Write-Host ""
+        Write-Host "  $BOLD$FG_WHITE Hello, $ACCENT$($name.ToUpper())$RESET"
+        Write-SectionHeader "What would you like to do?"
 
+        Write-Host "    $ACCENT1)$RESET  $FG_WHITE Log an Entry$RESET"
+        Write-Host "    $ACCENT2)$RESET  $FG_WHITE Retrieve an Entry$RESET"
+        Write-Host "    $ACCENT3)$RESET  $FG_WHITE Exit$RESET"
+        Write-Host ""
 
-    $entry = Read-Host "`nWhat did you learn today "
+        [int]$choice = Read-Host "  $PROMPT_CLR  Choose 1–3$RESET "
 
-
-
-    Write-Output "Logging entry for $day $month..."
-
-    # ------------------------------------------------------------------------------
-    # 2. DIRECTORY STRUCTURE SETUP
-    # ------------------------------------------------------------------------------
-    # Check if the Month folder exists; if not, create it
-    if (-not(Test-Path "./$month")) {
-        New-Item -Path "./" -Name $month -ItemType Directory | Out-Null
-    }
-
-    # Check if the Day folder exists inside the Month folder; if not, create it
-    if (-not(Test-Path "./$month/$day")) {
-        New-Item -Path "./$month" -Name $day -ItemType Directory | Out-Null
-    }
-
-    # ------------------------------------------------------------------------------
-    # 3. DAILY ENTRIES DATABASE (entries.json)
-    # ------------------------------------------------------------------------------
-    $entries_db_path = "./$month/$day/entries.json"
-    $check_entries_db = Test-Path $entries_db_path
-
-    # Create a blank JSON array if the file doesn't exist yet for today
-    if (-not $check_entries_db) {
-        New-Item -Path "./$month/$day/" -Name 'entries.json' -Value "[]" | Out-Null
-    }
-
-    # Read the JSON file (-Raw ensures it reads as a single string)
-    $entries = Get-Content $entries_db_path -Raw
-
-    # Convert JSON string into a PowerShell Array of objects
-    [array]$edb = ConvertFrom-Json $entries
-
-    # Search the array for the current user (Note: -eq is case-insensitive in PowerShell)
-    $user = $edb | Where-Object { $_.User -eq $name }
-
-    if (-not $user) {
-        # NOT FOUND: Create a brand new record for this user
-        $new_record = [PSCustomObject]@{
-            User     = $name.ToLower()
-            Learning = @($entry) # @() forces this to be an array from the start
+        if ($choice -notin 1..3) {
+            Write-Err "Invalid choice. Please enter 1, 2, or 3."
+            Start-Sleep -Seconds 1
         }
-        # Add the new record to the daily database
-        $edb += $new_record
+        else {
+            $isValid = $true
+        }
+    } until ($isValid)
+
+    # ── Option 3: Exit ────────────────────────────────────────────────────────
+    if ($choice -eq 3) {
+        Write-Banner
+        Write-Host "  $SUCCESS Goodbye, $($name.ToUpper())! Keep learning every day.$RESET"
+        Write-Host ""
+        $running = $false
+        break
     }
-    else {
-        # FOUND: Append the new learning entry to their existing list
-        $user.Learning += $entry
-    }
 
-    # Convert the updated database back to JSON and save it
-    $edb_json = ConvertTo-Json @($edb)
-    Set-Content $entries_db_path -Value $edb_json
+    # ── Option 1: Log Entry ───────────────────────────────────────────────────
+    if ($choice -eq 1) {
 
-    Write-Output ">> Entries record saved to daily JSON!"
+        $logging = $true
 
-    # ------------------------------------------------------------------------------
-    # 4. MARKDOWN GENERATION
-    # ------------------------------------------------------------------------------
-    # Re-fetch the user object to ensure we have the fully updated 'Learning' list
-    $user = $edb | Where-Object { $_.User -eq $name }
+        while ($logging) {
+            Write-Banner
+            Write-SectionHeader "Log a Learning Entry"
+            Write-Host "  $MUTED Date: $day $month $year$RESET"
+            Write-Host "  $MUTED User: $($name.ToUpper())$RESET"
+            Write-Divider
+            Write-Host ""
 
-    # Format the list of learnings into a string with newlines (`n) and tabs (`t)
-    $all_learning = $user.Learning -join "`n- "
+            $entry = Read-Host "  $PROMPT_CLR  What did you learn today?$RESET "
 
-    # Build the Markdown template using subexpressions $() for string manipulation
-    $readme = "# $($name.ToUpper()) Learning
+            if ([string]::IsNullOrWhiteSpace($entry)) {
+                Write-Err "Entry cannot be empty."
+                Start-Sleep -Seconds 1
+                continue
+            }
+
+            # ── Directory structure ──────────────────────────────────────────
+            if (-not (Test-Path "./$month")) { New-Item -Path "./"      -Name $month -ItemType Directory | Out-Null }
+            if (-not (Test-Path "./$month/$day")) { New-Item -Path "./$month" -Name $day  -ItemType Directory | Out-Null }
+
+            # ── entries.json ─────────────────────────────────────────────────
+            $entries_db_path = "./$month/$day/entries.json"
+            if (-not (Test-Path $entries_db_path)) {
+                New-Item -Path "./$month/$day/" -Name 'entries.json' -Value "[]" | Out-Null
+            }
+
+            [array]$edb = ConvertFrom-Json (Get-Content $entries_db_path -Raw)
+            $user_record = $edb | Where-Object { $_.User -eq $name }
+
+            if (-not $user_record) {
+                $new_record = [PSCustomObject]@{
+                    User     = $name.ToLower()
+                    Learning = @($entry)
+                }
+                $edb += $new_record
+            }
+            else {
+                $user_record.Learning += $entry
+            }
+
+            Set-Content $entries_db_path -Value (ConvertTo-Json @($edb))
+            Write-Success "Entry saved to daily JSON!"
+
+            # ── Markdown ─────────────────────────────────────────────────────
+            $user_record = $edb | Where-Object { $_.User -eq $name }
+            $all_learning = $user_record.Learning -join "`n- "
+
+            $readme = "# $($name.ToUpper()) Learning
 
 ### $day, $month $year
 
-## What did I learn today ?
+## What did I learn today?
 
 - $all_learning
 "
+            $md_filename = "$($name.ToLower())_learning.md"
+            New-Item -Path "./$month/$day" -Name $md_filename -Value $readme -Force | Out-Null
+            Write-Success "Markdown file updated → $FG_CYAN./$month/$day/$md_filename$RESET"
 
-    # Create or overwrite the Markdown file with the complete history for the day
-    $md_filename = "$($name.ToLower())_learning.md"
-    New-Item -Path "./$month/$day" -Name $md_filename -Value $readme -Force | Out-Null
-
-    Write-Output ">> Markdown file updated!"
-
-}
-else{
-    
-    $input_date = Read-Host "Enter the date (e.g., 3 4 or 02 04)"
-    $search_date = [datetime]::ParseExact($input_date, "d M", $null)
-    $month = $search_date.ToString('MMMM') # E.g., "February"
-    $day = $search_date.ToString('dd')     # E.g., "20"
-
-    $file_path = "./$month/$day/$($name.ToLower())_learning.md"
-
-    if (-not (Test-Path $file_path)){
-        Write-Output "`n`n`t !! NO ENTRIES FOUND !!"
-        Write-Output "`nExiting in 5sec ..."
-        Start-Sleep -Seconds 5
-    } else {
-        
-        Clear-Host
-
-        # Check if the Show-Markdown command is available
-        if (Get-Command Show-Markdown -ErrorAction SilentlyContinue) {
-            Show-Markdown -Path $file_path
-        } 
-        else {
-            # Fallback: Just print the raw text to the console
-            Get-Content $file_path
+            # ── Ask to log another ───────────────────────────────────────────
+            Write-Host ""
+            Write-Divider
+            $again = Read-Host "  $PROMPT_CLR  Log another entry? (y/n)$RESET "
+            if ($again -notmatch '^[Yy]') {
+                $logging = $false
+            }
         }
     }
 
-}
+    # ── Option 2: Retrieve Entry ──────────────────────────────────────────────
+    elseif ($choice -eq 2) {
+        Write-Banner
+        Write-SectionHeader "Retrieve an Entry"
+
+        $input_date = Read-Host "  $PROMPT_CLR  Enter date (e.g., 3 4 for 3rd April)$RESET "
+
+        try {
+            $search_date = [datetime]::ParseExact($input_date.Trim(), "d M", $null)
+            $search_month = $search_date.ToString('MMMM')
+            $search_day = $search_date.ToString('dd')
+        }
+        catch {
+            Write-Err "Invalid date format. Use: day month  e.g. 3 4"
+            Start-Sleep -Seconds 2
+            continue
+        }
+
+        $file_path = "./$search_month/$search_day/$($name.ToLower())_learning.md"
+
+        if (-not (Test-Path $file_path)) {
+            Write-Host ""
+            Write-Err "No entries found for $ACCENT$search_day $search_month$RESET under user $ACCENT$($name.ToUpper())$RESET."
+        }
+        else {
+            Write-Banner
+            Write-Host "  $HEADER╔══════════════════════════════════════════╗$RESET"
+            Write-Host "  $HEADER║  $ACCENT$($name.ToUpper())'s Log — $search_day $search_month $year$HEADER$((' ' * (42 - $name.Length - 16)))║$RESET"
+            Write-Host "  $HEADER╚══════════════════════════════════════════╝$RESET"
+            Write-Host ""
+
+            if (Get-Command Show-Markdown -ErrorAction SilentlyContinue) {
+                Show-Markdown -Path $file_path
+            }
+            else {
+                $lines = Get-Content $file_path
+                foreach ($line in $lines) {
+                    if ($line -match '^#') { Write-Host "  $ACCENT$line$RESET" }
+                    elseif ($line -match '^-') { Write-Host "  $FG_GREEN$line$RESET" }
+                    else { Write-Host "  $FG_WHITE$line$RESET" }
+                }
+            }
+        }
+
+        Write-Host ""
+        Write-Divider
+        Read-Host "  $MUTED  Press Enter to return to the menu$RESET "
+    }
+
+} # end while ($running)
